@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RESTRICTED</title>
+  <style>
+    /* Page geometry to mirror the screenshot */
+    html, body { height:100%; }
+    body {
+      margin:0; background:#ffffff; color:#000; font:14px/1.35 Arial, Helvetica, sans-serif;
+      display:flex; flex-direction:column; align-items:center;
+    }
+    .wrap { width:720px; max-width:95vw; }
+
+    /* Emblem: circular maroon badge, with SO in the middle */
+    .logo { display:block; width:180px; height:180px; margin:26px auto 10px; }
+
+    /* Header bar */
+    .bar {
+      width:100%; background:#7b1422; color:#fff; text-align:center; font-weight:bold;
+      padding:9px 0; border:1px solid #5e0f19; box-sizing:border-box;
+      letter-spacing:.3px;
+    }
+
+    /* Info block */
+    .notice { margin:18px 0 12px; color:#000; }
+    .kv { width:100%; border-collapse:separate; border-spacing:0; }
+    .kv td { padding:4px 0; vertical-align:top; }
+    .k { width:155px; color:#444; font-weight:bold; }
+
+    /* Button line + rule */
+    .center { text-align:center; }
+    .btn { display:inline-block; padding:4px 16px; border:1px solid #8b8b8b; background:#e1e1e1; border-radius:2px; cursor:pointer; }
+    .rule { margin:16px 0 12px; border:none; border-top:1px solid #bdbdbd; }
+
+    /* AUP footer */
+    .aup-title { color:#7b1422; text-align:center; font-weight:bold; margin:6px 0 6px; }
+    .aup-text { text-align:center; color:#000; }
+    .aup-text a { color:#1a0dab; text-decoration:none; }
+    .aup-text a:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- SVG logo replaced for Seven's Organization while keeping the same style -->
+    <svg class="logo" viewBox="0 0 200 200" aria-label="Seven's Organization">
+      <defs>
+        <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="#a03140"/>
+          <stop offset="1" stop-color="#7b1422"/>
+        </linearGradient>
+        <path id="topArc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none"/>
+        <path id="botArc" d="M 180 100 A 80 80 0 0 1 20 100" fill="none"/>
+      </defs>
+      <circle cx="100" cy="100" r="95" fill="url(#g)"/>
+      <circle cx="100" cy="100" r="85" fill="none" stroke="#ffffff" stroke-width="6"/>
+      <text fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700" text-anchor="middle" x="100" y="115">!</text>
+      <text font-size="12" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" letter-spacing="1">
+        <textPath href="#topArc" startOffset="15%">Seven's Organization</textPath>
+      </text>
+      <text font-size="12" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" letter-spacing="1">
+        <textPath href="#botArc" startOffset="20%">Seven's Organization</textPath>
+      </text>
+    </svg>
+
+    <div class="bar">RESTRICTED</div>
+
+    <div class="notice">You have been restricted by the district's internet filter policy.</div>
+
+    <table class="kv" role="presentation" aria-label="Details">
+      <tr><td class="k">URL:</td><td id="urlValue">&mdash;</td></tr>
+      <tr><td class="k">URL Categories:</td><td id="catsValue">&mdash;</td></tr>
+      <tr><td class="k">Policy:</td><td id="policyValue">Policy=default</td></tr>
+      <tr><td class="k">User:</td><td id="userValue">auto_bypass</td></tr>
+      <tr><td class="k">User's IP:</td><td id="ipValue">&mdash;</td></tr>
+    </table>
+
+    <p class="center" style="margin:12px 0 8px"><button class="btn" onclick="history.back()">Login</button></p>
+
+    <hr class="rule" />
+
+    <div class="aup-title">Acceptable Use Policy</div>
+    <div class="aup-text">
+      The site you have requested has been blocked because it does not comply with the
+      filtering requirements as described by the <a href="https://www.fcc.gov/consumers/guides/childrens-internet-protection-act" target="_blank" rel="noopener">Children's Internet Protection Act (CIPA)</a>.
+    </div>
+      <div class="bar"></div>
+
+  </div>
+	  
+
+  <script>
+    // ROT13
+    function rot13(s){
+      return s.replace(/[a-zA-Z]/g, function(c){
+        var a = c <= 'Z' ? 65 : 97;
+        return String.fromCharCode(((c.charCodeAt(0) - a + 13) % 26) + a);
+      });
+    }
+
+    const qs = new URLSearchParams(location.search);
+
+    const rawUrl = qs.get('url') || '';
+    const decodedUrl = rawUrl ? rot13(decodeURIComponent(rawUrl)) : '';
+    document.getElementById('urlValue').textContent = decodedUrl || '—';
+
+    const type = (qs.get('type') || '').toLowerCase();
+    const catsParam = qs.get('cats');
+    let catsText = '—';
+    if (catsParam) {
+      try {
+        const arr = JSON.parse(decodeURIComponent(catsParam));
+        catsText = Array.isArray(arr) ? arr.join(', ') : String(arr);
+      } catch(e) {
+        catsText = decodeURIComponent(catsParam);
+      }
+    } else if (type) {
+      const map = {security:'Security', aup:'Content Settings', domainlist:'Destination List', phish:'Phishing'};
+      catsText = map[type] || type;
+    }
+    document.getElementById('catsValue').textContent = catsText;
+
+    const policy = qs.get('policy') || 'Policy=default';
+    const user = qs.get('user') || 'auto_bypass';
+    const ip = qs.get('client_ip') || '—';
+
+    document.getElementById('policyValue').textContent = policy;
+    document.getElementById('userValue').textContent = user;
+    document.getElementById('ipValue').textContent = ip;
+  </script>
+</body>
+</html>
